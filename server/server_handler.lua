@@ -3,6 +3,7 @@ local http_server = require("http.server")
 local http_headers = require("http.headers")
 local api_methods = require("api_methods")
 local authorizer = require("authorizer")
+local uuid = require("utility").new_uuid
 
 local endpoint_not_found_headers = http_headers.new()
 endpoint_not_found_headers:append(":status", "401")
