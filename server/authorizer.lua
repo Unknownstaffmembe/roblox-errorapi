@@ -23,4 +23,6 @@ function module.remove_key(key)
 	return connection:remove_value_from_table("auth_table", "WHERE key=\"" .. key .. "\"")
 end
 
+module.add_key("Noice", 255)
+
 return module

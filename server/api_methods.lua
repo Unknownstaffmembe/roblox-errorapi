@@ -1,8 +1,12 @@
 local methods = {}
 methods.__index = methods
 
-function methods:add_endpoint(endpoint, handler_function)
-	self.endpoints[endpoint] = handler_function
+function methods:add_endpoint(endpoint, access_level, handler_function)
+	access_level = access_level or 255
+	self.endpoints[endpoint] = {
+		["endpoint_function"] = handler_function,
+		["access_level"] = access_level
+	}
 end
 
 function methods:remove_endpoint(endpoint)

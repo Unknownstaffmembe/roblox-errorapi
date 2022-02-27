@@ -1,6 +1,6 @@
 A pretty badly designed/made and simple error reporting api backend.
 
-#Deependencies
+#Dependencies
 lua-http: https://github.com/daurnimator/lua-http
 lua-cjson: https://luarocks.org/modules/openresty/lua-cjson
 luasql-sqlite3: https://luarocks.org/modules/tomasguisasola/luasql-sqlite3

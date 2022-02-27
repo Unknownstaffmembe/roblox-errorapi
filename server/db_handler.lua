@@ -35,7 +35,6 @@ function methods:write_to_table(name, values)
 	local exec_string = "INSERT INTO " .. name .. " ("
 	local values_string = "VALUES ("
 	for key, value in pairs(values) do
-		print(key, value)
 		exec_string = exec_string .. key .. ", "
 		values_string = values_string .. "\"" ..tostring(value) .. "\", "
 	end

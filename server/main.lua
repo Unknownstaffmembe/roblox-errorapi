@@ -16,7 +16,7 @@ server:add_endpoint("errors", 250, function(server, stream)
 	stream:write_headers(success_return_headers, true)
 end)
 
-server:add_endpoin("pull", 255, function(server, stream)
+server:add_endpoint("pull", 255, function(server, stream)
 
 end)
 
