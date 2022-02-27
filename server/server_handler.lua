@@ -2,7 +2,7 @@ local module = {}
 local http_server = require("http.server")
 local http_headers = require("http.headers")
 local api_methods = require("api_methods")
-local authorization_options = require("options.authorization")
+local authorizer = require("authorizer")
 
 local endpoint_not_found_headers = http_headers.new()
 endpoint_not_found_headers:append(":status", "401")
