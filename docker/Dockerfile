@@ -7,6 +7,7 @@ RUN apk add sqlite sqlite-dev
 RUN apk add bash build-base curl git openssl unzip
 RUN apk add bsd-compat-headers
 RUN apk add m4
+RUN apk add uuidgen
 
 RUN git clone https://github.com/keplerproject/luarocks.git && \
 	cd luarocks && \
