@@ -44,11 +44,19 @@ function methods:write_to_table(name, values)
 end
 
 function methods:remove_value_from_table(name, condition)
-	return self.connection:execute("DELETE FROM " .. name .. " " .. condition)
+	return self.connection:execute("DELETE FROM " .. name .. " " .. condition .. ";")
 end
 
 function methods:get_value(name, condition)
-	return self.connection:execute("SELECT * FROM " .. name .. " " .. condition):fetch()
+	return self.connection:execute("SELECT * FROM " .. name .. " " .. condition .. ";"):fetch()
+end
+
+function methods:get_cursor(name, condition)
+	return self.connection:execute("SELECT * FROM " .. name .. " " .. condition .. ";")
+end
+
+function methods:get_number_of_rows(name, condition)
+	return self.connection:execute("SELECT COUNT(*) FROM " .. name .. " " .. condition .. ";"):fetch()
 end
 
 return module

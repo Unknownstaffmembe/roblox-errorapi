@@ -30,7 +30,7 @@ function module.new(options)
 		local endpoint_function = endpoint.endpoint_function
 		local access_level = authorizer.authorize(tostring(authorization)) or 0
 		if access_level < endpoint.access_level then endpoint_function = endpoint_not_found end
-		local success, error_message = pcall(endpoint_function, server, stream)
+		local success, error_message = pcall(endpoint_function, server, stream, headers)
 		if not success then
 			print(error_message)
 		end
