@@ -6,3 +6,5 @@ You can configure the port number and hostname by editing the file **server.lua*
 Example:
 `docker run -d --restart=always -p 127.0.0.1:1337:1337 -v db:/root/roblox-errorapi/server/db:rw roblox-errorapi`
 This will map port 1337 on localhost to port 1337 in the container and mount a folder by the name db to the folder **/root/roblox-errorapi/server/db**
+
+If there's an update, just rebuild the docker container (if it doesn't update, try passing the argument --no-cache, e.g. `docker build --no-cache -t roblox-errorapi .`)
