@@ -1,0 +1,4 @@
+#!/bin/sh
+cd /root/roblox-errorapi/server
+mkdir db && echo Data will not persist, read the README 2>/dev/null
+luajit main.lua
