@@ -12,3 +12,5 @@ Use luajit for maximum performance.
 
 Run this behind a reverse proxy (e.g. Nginx) since this doesn't use https and, it doesn't have a rate limiter built in.
 
+# Note
+default authorization key = `NotASecureKey` which has an **access level** of `255`.

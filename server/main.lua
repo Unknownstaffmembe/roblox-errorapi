@@ -92,7 +92,23 @@ server:add_endpoint("pull", 255, function(server, stream, headers)
 	stream:shutdown()
 end)
 
-server:add_endpoint("change-key", 255, function(server, stream, headers)
+server:add_endpoint("addkey", 255, function(server, stream, headers)
+	local body = stream:get_body_as_string()	
+	local success, data = pcall(decode, body)
+	if successs then
+		for key, authorization_level in pairs(data) do
+			authorization.new_key(key, authorization_level)
+		end
+		stream:write_headers(success_post_return_headers, true)
+	else
+		stream:write_headers(invalid_json_return_headers, false)
+		stream:write_body_from_string("invalid json\n" .. tostring(data))
+	end
+	stream:shutdown()
+
+end)
+
+server:add_endpoint("changekey", 255, function(server, stream, headers)
 	local body = stream:get_body_as_string()	
 	local success, data = pcall(decode, body)
 	if successs then
@@ -107,12 +123,16 @@ server:add_endpoint("change-key", 255, function(server, stream, headers)
 				authorization_level
 			}
 		end
+		stream:write_headers(success_get_return_headers, false)
+		stream:write_body_from_string(json.encode(return_table))
 
 	else
 		stream:write_headers(invalid_json_return_headers, false)
 		stream:write_body_from_string("invalid json\n" .. tostring(data))
 	end
-end
+	stream:shutdown()
+end)
+
 server:add_endpoint("execute", 255, function(server, stream)
 
 end)
