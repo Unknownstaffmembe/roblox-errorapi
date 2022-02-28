@@ -1,5 +1,5 @@
 local module = {}
-local db_handler = require("db_handler")
+local db_handler = require("./db_handler")
 local connection = db_handler.new("auth.db")
 local values = {
 	["key"] = "varchar(255) NOT NULL PRIMARY KEY",

@@ -1,6 +1,6 @@
 -- modules
-local server_handler = require("server_handler")
-local db_handler = require("db_handler")
+local server_handler = require("./server_handler")
+local db_handler = require("./db_handler")
 local http_headers = require("http.headers")
 local json = require("cjson")
 
