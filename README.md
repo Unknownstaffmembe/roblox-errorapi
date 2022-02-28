@@ -8,7 +8,7 @@ lua-cjson: https://luarocks.org/modules/openresty/lua-cjson
 luasql-sqlite3: https://luarocks.org/modules/tomasguisasola/luasql-sqlite3
 
 # Recommendations
-I recommend using LuaJIT for better performance (rather than using Lua 5.1, 5.2, 5.3, etc).
+Use luajit for maximum performance.
 
-I also recommend running this behind a reverse proxy (e.g. Nginx) since this doesn't use https and, it doesn't have a rate limiter built in.
+Run this behind a reverse proxy (e.g. Nginx) since this doesn't use https and, it doesn't have a rate limiter built in.
 
