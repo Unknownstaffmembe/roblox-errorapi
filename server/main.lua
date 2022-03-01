@@ -111,7 +111,7 @@ end)
 server:add_endpoint("changekey", 255, function(server, stream, headers)
 	local body = stream:get_body_as_string()	
 	local success, data = pcall(decode, body)
-	if successs then
+	if success then
 		local return_table = {}
 		for key, new_key_table in pairs(data) do
 			local new_key = new_key_table.key or new_uuid() .. new_uuid()
