@@ -1,3 +1,4 @@
+if db_handler_module then return db_handler_module end
 local module = {}
 local methods = {}
 local environment = require("luasql.sqlite3").sqlite3()
@@ -59,4 +60,5 @@ function methods:get_number_of_rows(name, condition)
 	return self.connection:execute("SELECT COUNT(*) FROM " .. name .. " " .. condition .. ";"):fetch()
 end
 
+db_handler_module = module
 return module

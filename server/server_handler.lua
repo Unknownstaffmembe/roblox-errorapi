@@ -7,6 +7,9 @@ local uuid = require("./utility").new_uuid
 
 local endpoint_not_found_headers = http_headers.new()
 endpoint_not_found_headers:append(":status", "401")
+local error_headers = http_headers.new()
+error_headers:append(":status", "500")
+error_headers:append("Content-Type", "text/plain")
 
 local function endpoint_not_found(server, stream)
 	stream:write_headers(endpoint_not_found_headers, true)
@@ -32,7 +35,9 @@ function module.new(options)
 		if access_level < endpoint.access_level then endpoint_function = endpoint_not_found end
 		local success, error_message = pcall(endpoint_function, server, stream, headers)
 		if not success then
-			print(error_message)
+			stream:write_headers(error_headers, false)
+			stream:write_body_from_string(tostring(error_message))
+			stream:shutdown()
 		end
 	end
 

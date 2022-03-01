@@ -112,19 +112,13 @@ server:add_endpoint("changekey", 255, function(server, stream, headers)
 	local body = stream:get_body_as_string()	
 	local success, data = pcall(decode, body)
 	if success then
-		local return_table = {}
 		for key, new_key_table in pairs(data) do
 			local new_key = new_key_table.key or new_uuid() .. new_uuid()
 			local authorization_level = new_key_table.level or 0
-			authorization.remove_key(key)		
-			authorization.new_key(new_key, authorization_level)
-			return_table[key] = {
-				new_key,
-				authorization_level
-			}
+			authorizer.remove_key(key)
+			authorizer.add_key(new_key, authorization_level)
 		end
-		stream:write_headers(success_get_return_headers, false)
-		stream:write_body_from_string(json.encode(return_table))
+		stream:write_headers(success_post_return_headers, true)
 
 	else
 		stream:write_headers(invalid_json_return_headers, false)

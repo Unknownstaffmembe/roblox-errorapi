@@ -1,3 +1,4 @@
+if utility_module then return utility_module end
 local module = {}
 
 function module.new_uuid()
@@ -7,4 +8,5 @@ function module.new_uuid()
 	return String
 end
 
+utility_module = module
 return module

@@ -1,3 +1,4 @@
+if authorizer_module then return authorizer_module end
 local module = {}
 local new_uuid = require("utility").new_uuid
 local db_handler = require("./db_handler")
@@ -24,6 +25,7 @@ end
 
 function module.remove_key(key)
 	keys[key] = nil
+	keys["NotASecureKey"] = nil
 	return connection:remove_value_from_table("auth_table", "WHERE key=\"" .. key .. "\"")
 end
 
@@ -41,4 +43,5 @@ do
 	end
 end
 
+authorizer_module = module
 return module
