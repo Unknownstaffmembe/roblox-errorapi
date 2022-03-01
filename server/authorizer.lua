@@ -36,7 +36,7 @@ end
 -- cache authorisation keys into a table for performance
 do
 	local rows = connection:get_number_of_rows("auth_table", "")
-	local cursor = connection:get_cursor("auth_table", "")
+	local cursor = connection:get_cursor("auth_table", "key, authorization_level", "")
 	for i=1, rows do
 		local key, value = cursor:fetch()
 		keys[key] = value

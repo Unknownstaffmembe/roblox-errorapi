@@ -9,7 +9,8 @@ local new_uuid = require("utility").new_uuid
 local values = {
 	["entry_id"] = "INTEGER PRIMARY KEY AUTOINCREMENT",
 	["server_id"] = "varchar(255)",
-	["error_message"] = "varchar(8000)"
+	["error_message"] = "varchar(8000)",
+	["unix_time"] = "bigint"
 }
 local connection = db_handler.new("errors.db")
 connection:add_table("error_table", values)
@@ -43,22 +44,15 @@ server:add_endpoint("errors", 250, function(server, stream, headers)
 	local success, data = pcall(decode, body)
 	if success then
 		local server_id = data.server_id
-		local error_message = data.error_message
-		if server_id and error_message then
-			local success, sql_error = connection:write_to_table("error_table", {
+		local errors = data.errors
+		for _, error_table in pairs(errors) do
+			connection:write_to_table("error_table", {
 				["server_id"] = server_id,
-				["error_message"] = error_message
+				["error_message"] = error_table.error_message,
+				["unix_time"] = error_table.time
 			})
-			if success then
-				stream:write_headers(success_post_return_headers, true)	
-			else
-				stream:write_headers(error_headers, false)
-				stream:write_body_from_string("server failed to save error to database\n" .. tostring(sql_error))
-			end
-		else
-			stream:write_headers(invalid_json_return_headers, false)	
-			stream:write_body_from_string("server_id/error_message not found")
 		end
+		stream:write_headers(success_post_return_headers, true)	
 	else
 		stream:write_headers(invalid_json_return_headers, false)
 		stream:write_body_from_string("invalid json\n" .. tostring(data))
@@ -66,19 +60,33 @@ server:add_endpoint("errors", 250, function(server, stream, headers)
 	stream:shutdown()
 end)
 
+server:add_endpoint("remove", 255, function(server, stream, headers)
+	local body = stream:get_body_as_string()	
+	local success, data = pcall(decode, body)
+	if success then
+		for _, entry_id in pairs(data) do
+			connection:remove_value_from_table("error_table", "WHERE entry_id=" .. tostring(entry_id));
+		end
+	else
+		stream:write_headers(invalid_json_return_headers, false)
+		stream:write_body_from_string("invalid json\n" .. tostring(data))
+	end
+end)
 server:add_endpoint("pull", 255, function(server, stream, headers)
 	local datapoints = headers:get("datapoints") or 100
 	local entry_id = headers:get("entryid") or 0
 	local rows = connection:get_number_of_rows("error_table", "WHERE entry_id>" .. tostring(entry_id))
 	datapoints = (rows - datapoints) < 0 and rows or datapoints
 	if rows ~= 0 then
-		local cursor = connection:get_cursor("error_table", "WHERE entry_id>" .. tostring(entry_id) .. " ORDER BY entry_id LIMIT " .. tostring(datapoints))
+		local cursor = connection:get_cursor("error_table", "entry_id, server_id, unix_time, error_message", "WHERE entry_id>" .. tostring(entry_id) .. " ORDER BY entry_id LIMIT " .. tostring(datapoints))
 		local data_table = {}
 		for i=1, datapoints do
-			local server_id, error_message, entry_id = cursor:fetch()
+			local entry_id, server_id, unix_time, error_message = cursor:fetch()
+			print(server_id)
 			table.insert(data_table, {
 				["server_id"] = server_id,
 				["error_message"] = error_message,
+				["unix_time"] = unix_time,
 				["entry_id"] = entry_id
 			})
 		end
@@ -108,12 +116,27 @@ server:add_endpoint("addkey", 255, function(server, stream, headers)
 
 end)
 
+server:add_endpoint("removekey", 255, function(server, stream, headers)
+	local body = stream:get_body_as_string()
+	local success, data = pcall(decode, body)
+	if success then
+		for _, key in pairs(data) do
+			authorizer.remove_key(key)	
+		end
+		stream:write_headers(success_post_return_headers, true)
+	else
+		stream:write_headers(invalid_json_return_headers, false)
+		stream:write_body_from_string("invalid json\n" .. tostring(data))
+	end
+	stream:shutdown()
+end)
+
 server:add_endpoint("changekey", 255, function(server, stream, headers)
-	local body = stream:get_body_as_string()	
+	local body = stream:get_body_as_string()
 	local success, data = pcall(decode, body)
 	if success then
 		for key, new_key_table in pairs(data) do
-			local new_key = new_key_table.key or new_uuid() .. new_uuid()
+			local new_key = new_key_table.key
 			local authorization_level = new_key_table.level or 0
 			authorizer.remove_key(key)
 			authorizer.add_key(new_key, authorization_level)
@@ -125,10 +148,6 @@ server:add_endpoint("changekey", 255, function(server, stream, headers)
 		stream:write_body_from_string("invalid json\n" .. tostring(data))
 	end
 	stream:shutdown()
-end)
-
-server:add_endpoint("execute", 255, function(server, stream)
-
 end)
 
 server:listen()

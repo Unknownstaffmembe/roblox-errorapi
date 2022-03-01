@@ -52,12 +52,16 @@ function methods:get_value(name, condition)
 	return self.connection:execute("SELECT * FROM " .. name .. " " .. condition .. ";"):fetch()
 end
 
-function methods:get_cursor(name, condition)
-	return self.connection:execute("SELECT * FROM " .. name .. " " .. condition .. ";")
+function methods:get_cursor(name, order, condition)
+	return self.connection:execute("SELECT " .. order .. " FROM " .. name .. " " .. condition .. ";")
 end
 
 function methods:get_number_of_rows(name, condition)
 	return self.connection:execute("SELECT COUNT(*) FROM " .. name .. " " .. condition .. ";"):fetch()
+end
+
+function methods:execute(command)
+	return self.connection:execute(command)
 end
 
 db_handler_module = module
