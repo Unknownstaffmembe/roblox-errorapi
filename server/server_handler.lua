@@ -21,6 +21,7 @@ local endpoint_not_found_table = {
 	["access_level"] = 0
 }
 
+
 function module.new(options)
 	local object = setmetatable({}, api_methods)
 	local endpoints = {}

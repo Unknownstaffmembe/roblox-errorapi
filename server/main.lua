@@ -72,6 +72,7 @@ server:add_endpoint("remove", 255, function(server, stream, headers)
 		stream:write_body_from_string("invalid json\n" .. tostring(data))
 	end
 end)
+
 server:add_endpoint("pull", 255, function(server, stream, headers)
 	local datapoints = headers:get("datapoints") or 100
 	local entry_id = headers:get("entryid") or 0
@@ -82,7 +83,6 @@ server:add_endpoint("pull", 255, function(server, stream, headers)
 		local data_table = {}
 		for i=1, datapoints do
 			local entry_id, server_id, unix_time, error_message = cursor:fetch()
-			print(server_id)
 			table.insert(data_table, {
 				["server_id"] = server_id,
 				["error_message"] = error_message,
