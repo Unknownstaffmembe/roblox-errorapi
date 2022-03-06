@@ -5,20 +5,20 @@ local json = require("cjson")
 local new_uuid = require("utility").new_uuid
 
 local main_table_values = {
-	["entry_id"] = "INTEGER PRIMARY KEY AUTOINCREMENT",
+	["entry_id"] = "INTEGER PRIMARY KEY AUTO_INCREMENT",
 	["error_hash"] = "varchar(255) NOT NULL UNIQUE",
 	["error_message"] = "varchar(8000)",
 	["frequency"] = "int"
 }
 
 local error_table_values = {
-	["entry_id"] = "INTEGER PRIMARY KEY AUTOINCREMENT",
+	["entry_id"] = "INTEGER PRIMARY KEY AUTO_INCREMENT",
 	["server_id"] = "varchar(255) NOT NULL UNIQUE",
 	["frequency"] = "bigint"
 }
 
 local timestamp_table_values = {
-	["entry_id"] = "INTEGER PRIMARY KEY AUTOINCREMENT",
+	["entry_id"] = "INTEGER PRIMARY KEY AUTO_INCREMENT",
 	["time"] = "bigint"
 }
 
@@ -41,9 +41,8 @@ local timestamp_table_values = {
 
 local hashes = {}
 
-local connection = db_handler.new("errors.db")
+local connection = db_handler.new("errorsdb")
 connection:add_table("error_table", main_table_values)
-
 do
 	local cursor = connection:get_cursor("error_table", "error_hash", "")
 	if not cursor then return end
@@ -53,7 +52,6 @@ do
 		hashes[hash] = true -- we could index the database directly but, this allows for quicker lookups/checks and, as long as you don't have 10 million + records, you should be fine
 	end
 end
-
 -- configs
 local server_options = require("options.server")
 local success_post_return_headers = http_headers.new()
@@ -82,6 +80,7 @@ server:add_endpoint("errors", 250, function(server, stream, headers)
 	local body = stream:get_body_as_string()
 	local success, data = pcall(decode, body)
 	if success then
+		local transaction = db_handler.new_transaction("errordb")
 		local server_id = data.server_id
 		local errors_table = data.errors
 		local hashes_table = data.hashes
@@ -89,36 +88,34 @@ server:add_endpoint("errors", 250, function(server, stream, headers)
 		local return_hashes_table = {}
 
 		for error_hash, error_message in pairs(errors_table) do
-			connection:write_to_table("error_table", {
+			transaction:write_to_table("error_table", {
 				["error_hash"] = error_hash,
 				["error_message"] = error_message,
 				["frequency"] = 0
 			})
-			connection:add_table(error_hash, error_table_values)
-			connection:write_to_table(error_hash, {["server_id"] = server_id, ["frequency"] = 0})
-			connection:add_table(error_hash .. server_id, timestamp_table_values)
+			transaction:add_table(error_hash, error_table_values)
 			hashes[error_hash] = true
 		end
-
 		for error_hash, time_table in pairs(hashes_table) do
 			if hashes[error_hash] then
-				connection:write_to_table(error_hash, {["server_id"] = server_id, ["frequency"] = 0})
+				transaction:write_to_table(error_hash, {["server_id"] = server_id, ["frequency"] = 0})
 				local timestamp_table_string = error_hash .. server_id
 				local timestamps = time_table.timestamps
 				local frequency = tostring(time_table.frequency)
 				local timestamp_template = {["time"] = 0}
-				connection:increment_value(error_hash, "frequency = frequency + " .. frequency, "WHERE server_id=\"" .. server_id .. "\"")
-				connection:increment_value("error_table", "frequency = frequency + " .. frequency, "WHERE error_hash=\"" .. error_hash .. "\"")
+				transaction:increment_value(error_hash, "frequency = frequency + " .. frequency, "WHERE server_id=\"" .. server_id .. "\"")
+				transaction:increment_value("error_table", "frequency = frequency + " .. frequency, "WHERE error_hash=\"" .. error_hash .. "\"")
+				transaction:add_table(timestamp_table_string, timestamp_table_values)
 				for _, timestamp in pairs(timestamps) do
 					timestamp_template["time"] = timestamp
-					connection:write_to_table(timestamp_table_string, timestamp_template)
+					transaction:write_to_table(timestamp_table_string, timestamp_template)
 				end
 			else
 				return_hashes = return_hashes + 1
 				table.insert(return_hashes_table, error_hash)
 			end
 		end
-		
+		print(transaction:commit())
 		stream:write_headers(success_get_return_headers, false)	
 		stream:write_body_from_string(json.encode({
 			["return_hashes"] = return_hashes,

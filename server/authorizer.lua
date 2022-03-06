@@ -2,11 +2,12 @@ if authorizer_module then return authorizer_module end
 local module = {}
 local new_uuid = require("utility").new_uuid
 local db_handler = require("./db_handler")
-local connection = db_handler.new("auth.db")
+local connection = db_handler.new("authdb")
 local auth_table_values = {
-	["key"] = "varchar(65535) NOT NULL PRIMARY KEY",
-	["authorization_level"] = "int DEFAULT \"0\""
+	["auth_key"] = "VARCHAR(255) NOT NULL PRIMARY KEY",
+	["authorization_level"] = "INT(255) DEFAULT \"0\""
 }
+
 local auth_table_success = connection:add_table("auth_table", auth_table_values) -- referenced at the end
 local keys = {} -- keys -> access level
 
@@ -18,7 +19,7 @@ end
 function module.add_key(key, authorization_level)
 	keys[key] = authorization_level
 	return connection:write_to_table("auth_table", {
-		["key"] = key,
+		["auth_key"] = key,
 		["authorization_level"] = authorization_level or 0
 	})
 end
@@ -36,10 +37,10 @@ end
 -- cache authorisation keys into a table for performance
 do
 	local rows = connection:get_number_of_rows("auth_table", "")
-	local cursor = connection:get_cursor("auth_table", "key, authorization_level", "")
+	local cursor = connection:get_cursor("auth_table", "auth_key, authorization_level", "")
 	for i=1, rows do
 		local key, value = cursor:fetch()
-		keys[key] = value
+		keys[key] = tonumber(value)
 	end
 end
 
